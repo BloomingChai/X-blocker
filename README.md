@@ -1,4 +1,4 @@
-# X黄评屏蔽器
+# X信息屏蔽器
 
 这个项目基于原仓库 [xuanyuanzhifeng/x-block](https://github.com/xuanyuanzhifeng/x-block) 修改而来，我在原基础上做了一些规则和界面上的调整。
 
