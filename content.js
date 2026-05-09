@@ -3,6 +3,7 @@
   const TEXT_SELECTOR = '[data-testid="tweetText"]';
   const NAME_SELECTOR = '[data-testid="User-Name"]';
   const AVATAR_SELECTOR = '[data-testid="Tweet-User-Avatar"]';
+  const ACTION_SELECTOR = '[role="group"]';
   const NON_TEXT_SELECTORS = [
     '[data-testid="tweetPhoto"]',
     '[data-testid="card.wrapper"]',
@@ -106,13 +107,41 @@
     return extractNodeText(node) || node.innerText || node.textContent || "";
   }
 
+  function getRelevantLinkText(article) {
+    const parts = [];
+
+    article.querySelectorAll('a[href]').forEach((link) => {
+      if (
+        link.closest(NAME_SELECTOR) ||
+        link.closest(AVATAR_SELECTOR) ||
+        link.closest(ACTION_SELECTOR) ||
+        link.closest(".xhb-overlay")
+      ) {
+        return;
+      }
+
+      const visibleText = getNodeText(link).trim();
+      const href = link.getAttribute("href") || "";
+      const normalizedHref = href.startsWith("http") ? href : "";
+
+      if (visibleText) {
+        parts.push(visibleText);
+      }
+
+      if (normalizedHref) {
+        parts.push(normalizedHref);
+      }
+    });
+
+    return parts.join("\n");
+  }
+
   function getArticleText(article) {
     const textNode = findTextNode(article);
-    if (!textNode) {
-      return "";
-    }
+    const mainText = textNode ? getNodeText(textNode) : "";
+    const linkText = getRelevantLinkText(article);
 
-    return getNodeText(textNode);
+    return [mainText, linkText].filter(Boolean).join("\n");
   }
 
   function getProfileData(article) {
