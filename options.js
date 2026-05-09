@@ -1,6 +1,6 @@
 (function initOptions() {
-  const shortForm = document.getElementById("short-keyword-form");
-  const shortInput = document.getElementById("short-keyword-input");
+  const contentForm = document.getElementById("content-keyword-form");
+  const contentInput = document.getElementById("content-keyword-input");
   const profileForm = document.getElementById("profile-keyword-form");
   const profileInput = document.getElementById("profile-keyword-input");
   const whitelistForm = document.getElementById("whitelist-handle-form");
@@ -8,11 +8,10 @@
 
   const whitelistTable = document.getElementById("whitelist-table");
   const profileTable = document.getElementById("profile-table");
-  const customShortTable = document.getElementById("custom-short-table");
+  const contentTable = document.getElementById("content-table");
 
   const whitelistCount = document.getElementById("whitelist-count");
-  const customShortCount = document.getElementById("custom-short-count");
-  const resetProfileKeywordsButton = document.getElementById("reset-profile-keywords");
+  const contentCount = document.getElementById("content-count");
 
   function createEmptyRow(colspan, text) {
     const row = document.createElement("tr");
@@ -80,7 +79,7 @@
     const settings = await window.XHB.getSettings();
 
     whitelistCount.textContent = String(settings.whitelistHandles.length);
-    customShortCount.textContent = String(settings.customShortKeywords.length);
+    contentCount.textContent = String(settings.shortKeywords.length);
 
     renderTable(
       whitelistTable,
@@ -107,29 +106,29 @@
     );
 
     renderTable(
-      customShortTable,
-      settings.customShortKeywords,
-      "自定义短词",
+      contentTable,
+      settings.shortKeywords,
+      "内容敏感词",
       async (keyword) => {
         await updateSettings((draft) => {
-          draft.customShortKeywords = draft.customShortKeywords.filter((item) => item !== keyword);
+          draft.shortKeywords = draft.shortKeywords.filter((item) => item !== keyword);
         });
       },
-      "暂无自定义短词"
+      "暂无内容敏感词"
     );
   }
 
-  shortForm.addEventListener("submit", async (event) => {
+  contentForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const cleaned = window.XHB.sanitizeForRule(shortInput.value.trim());
+    const cleaned = window.XHB.sanitizeForRule(contentInput.value.trim());
     if (!cleaned) {
       return;
     }
 
     await updateSettings((draft) => {
-      draft.customShortKeywords = Array.from(new Set([...draft.customShortKeywords, cleaned]));
+      draft.shortKeywords = Array.from(new Set([...(draft.shortKeywords || []), cleaned]));
     });
-    shortInput.value = "";
+    contentInput.value = "";
   });
 
   profileForm.addEventListener("submit", async (event) => {
@@ -162,15 +161,6 @@
     if (areaName === "local" && changes[window.XHB.STORAGE_KEY]) {
       render();
     }
-  });
-
-  resetProfileKeywordsButton.addEventListener("click", async () => {
-    if (!window.confirm("恢复账号敏感词到默认内容？你之前删除或新增的账号词会被默认列表覆盖。")) {
-      return;
-    }
-
-    await window.XHB.resetDefaultProfileKeywords();
-    await render();
   });
 
   render();

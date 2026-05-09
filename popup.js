@@ -1,6 +1,6 @@
 (function initPopup() {
-  const shortForm = document.getElementById("short-keyword-form");
-  const shortInput = document.getElementById("short-keyword-input");
+  const contentForm = document.getElementById("content-keyword-form");
+  const contentInput = document.getElementById("content-keyword-input");
   const profileForm = document.getElementById("profile-keyword-form");
   const profileInput = document.getElementById("profile-keyword-input");
   const whitelistForm = document.getElementById("whitelist-handle-form");
@@ -8,12 +8,11 @@
 
   const whitelistRoot = document.getElementById("whitelist-handles");
   const profileKeywordsRoot = document.getElementById("profile-keywords");
-  const customShortRoot = document.getElementById("custom-short-keywords");
+  const contentKeywordsRoot = document.getElementById("content-keywords");
 
   const whitelistCount = document.getElementById("whitelist-count");
   const profileCount = document.getElementById("profile-count");
-  const customShortCount = document.getElementById("custom-short-count");
-  const resetProfileKeywordsButton = document.getElementById("reset-profile-keywords");
+  const contentCount = document.getElementById("content-count");
 
   function createChip(text, onRemove) {
     const chip = document.createElement("div");
@@ -66,7 +65,7 @@
 
     whitelistCount.textContent = String(settings.whitelistHandles.length);
     profileCount.textContent = String(settings.profileKeywords.length);
-    customShortCount.textContent = String(settings.customShortKeywords.length);
+    contentCount.textContent = String(settings.shortKeywords.length);
 
     renderList(
       whitelistRoot,
@@ -91,29 +90,29 @@
     );
 
     renderList(
-      customShortRoot,
-      settings.customShortKeywords,
+      contentKeywordsRoot,
+      settings.shortKeywords,
       async (keyword) => {
         await updateSettings((draft) => {
-          draft.customShortKeywords = draft.customShortKeywords.filter((item) => item !== keyword);
+          draft.shortKeywords = draft.shortKeywords.filter((item) => item !== keyword);
         });
       },
-      "还没有自定义短词。"
+      "还没有内容敏感词。"
     );
   }
 
-  shortForm.addEventListener("submit", async (event) => {
+  contentForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const cleaned = window.XHB.sanitizeForRule(shortInput.value.trim());
+    const cleaned = window.XHB.sanitizeForRule(contentInput.value.trim());
     if (!cleaned) {
       return;
     }
 
     await updateSettings((draft) => {
-      draft.customShortKeywords = Array.from(new Set([...draft.customShortKeywords, cleaned]));
+      draft.shortKeywords = Array.from(new Set([...(draft.shortKeywords || []), cleaned]));
     });
-    shortInput.value = "";
+    contentInput.value = "";
   });
 
   profileForm.addEventListener("submit", async (event) => {
@@ -142,15 +141,6 @@
       draft.whitelistHandles = Array.from(new Set([...(draft.whitelistHandles || []), cleaned]));
     });
     whitelistInput.value = "";
-  });
-
-  resetProfileKeywordsButton.addEventListener("click", async () => {
-    if (!window.confirm("恢复账号敏感词到默认内容？你之前删除或新增的账号词会被默认列表覆盖。")) {
-      return;
-    }
-
-    await window.XHB.resetDefaultProfileKeywords();
-    await render();
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {

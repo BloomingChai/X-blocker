@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>X黄评屏蔽器</title>
+    <title>X信息屏蔽器</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
@@ -12,9 +12,9 @@
         <div class="hero-card__content">
           <div class="hero-title-row">
             <img class="brand-mark" src="brand-mark.png" alt="" aria-hidden="true" />
-            <h1>X黄评屏蔽器</h1>
+            <h1>X信息屏蔽器</h1>
           </div>
-          <p class="hero-card__copy">集中管理账号敏感词和自定义短词，命中后会直接参与当前屏蔽规则。</p>
+          <p class="hero-card__copy">集中管理白名单、账号敏感词和内容敏感词，改动会立即参与当前屏蔽规则。</p>
           <div class="hero-stats">
             <div class="stat">
               <span class="stat__label">白名单账号</span>
@@ -25,8 +25,8 @@
               <strong id="profile-count" class="stat__value">0</strong>
             </div>
             <div class="stat">
-              <span class="stat__label">自定义短词</span>
-              <strong id="custom-short-count" class="stat__value">0</strong>
+              <span class="stat__label">内容敏感词</span>
+              <strong id="content-count" class="stat__value">0</strong>
             </div>
           </div>
         </div>
@@ -47,12 +47,11 @@
       </section>
 
       <section class="panel">
-        <div class="panel__header panel__header--spread">
+        <div class="panel__header">
           <div>
             <p class="panel__kicker">账号规则</p>
             <h2>账号敏感词</h2>
           </div>
-          <button id="reset-profile-keywords" class="panel__ghost" type="button">恢复默认</button>
         </div>
         <form id="profile-keyword-form" class="stack-form">
           <input id="profile-keyword-input" type="text" placeholder="例如：线下、可约、私聊主页" maxlength="30" />
@@ -64,15 +63,15 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <p class="panel__kicker">快速扩展</p>
-            <h2>自定义短词</h2>
+            <p class="panel__kicker">内容规则</p>
+            <h2>内容敏感词</h2>
           </div>
         </div>
-        <form id="short-keyword-form" class="stack-form">
-          <input id="short-keyword-input" type="text" placeholder="例如：求抱走、会撒娇" maxlength="30" />
-          <button type="submit">添加短词</button>
+        <form id="content-keyword-form" class="stack-form">
+          <input id="content-keyword-input" type="text" placeholder="例如：求抱走、会撒娇" maxlength="30" />
+          <button type="submit">添加内容词</button>
         </form>
-        <div id="custom-short-keywords" class="chip-grid"></div>
+        <div id="content-keywords" class="chip-grid"></div>
       </section>
     </main>
 

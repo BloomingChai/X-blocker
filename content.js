@@ -39,9 +39,8 @@
       "profile-keyword": "命中：账号敏感词",
       "flower-emoji": "命中：昵称含🌸",
       "emoji-numeric-tail-id": "命中：emoji + 数字尾号",
-      "emoji-threshold": "命中：正文含4个及以上emoji",
-      "custom-keyword": "命中：自定义短词",
-      keyword: "命中：内置短词"
+      "emoji-threshold": "命中：正文含3个及以上emoji",
+      keyword: "命中：内容敏感词"
     };
 
     return reasonLabels[matchResult.reason] || MASKED_LABEL;
@@ -114,18 +113,6 @@
     }
 
     return getNodeText(textNode);
-  }
-
-  function isPureTextArticle(article) {
-    const textNode = findTextNode(article);
-    if (!textNode) {
-      return false;
-    }
-
-    return !NON_TEXT_SELECTORS.some((selector) => {
-      const matched = article.querySelector(selector);
-      return matched && !textNode.contains(matched);
-    });
   }
 
   function getProfileData(article) {
@@ -270,11 +257,6 @@
     const priorityTextMatch = window.XHB.matchPriorityText(text, settings);
     if (priorityTextMatch.matched) {
       applyMask(article, priorityTextMatch);
-      return;
-    }
-
-    if (!isPureTextArticle(article)) {
-      clearMask(article);
       return;
     }
 

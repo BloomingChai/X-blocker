@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>X黄评屏蔽器词库管理</title>
+    <title>X信息屏蔽器词库管理</title>
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
@@ -13,7 +13,7 @@
           <img class="brand-mark" src="brand-mark.png" alt="" aria-hidden="true" />
           <h1>词库管理页</h1>
         </div>
-        <p class="hero__copy">完整查看和管理账号敏感词与自定义短词，改动会立即影响当前屏蔽规则。</p>
+        <p class="hero__copy">完整查看和管理白名单、账号敏感词与内容敏感词，改动会立即影响当前屏蔽规则。</p>
       </section>
 
       <section class="library-panel">
@@ -47,10 +47,9 @@
         <section class="table-panel">
           <div class="table-panel__head">
             <div>
-              <p class="table-panel__kicker">账号规则</p>
+              <p class="table-panel__kicker">默认规则</p>
               <h2>账号敏感词</h2>
             </div>
-            <button id="reset-profile-keywords" class="table-panel__action" type="button">恢复默认账号词</button>
           </div>
           <form id="profile-keyword-form" class="inline-form table-panel__form">
             <input id="profile-keyword-input" type="text" placeholder="新增账号敏感词" maxlength="30" />
@@ -74,14 +73,14 @@
         <section class="table-panel">
           <div class="table-panel__head">
             <div>
-              <p class="table-panel__kicker">快速扩展</p>
-              <h2>自定义短词</h2>
+              <p class="table-panel__kicker">内容规则</p>
+              <h2>内容敏感词</h2>
             </div>
-            <span id="custom-short-count" class="table-panel__count">0</span>
+            <span id="content-count" class="table-panel__count">0</span>
           </div>
-          <form id="short-keyword-form" class="inline-form table-panel__form">
-            <input id="short-keyword-input" type="text" placeholder="新增自定义短词" maxlength="30" />
-            <button type="submit">添加短词</button>
+          <form id="content-keyword-form" class="inline-form table-panel__form">
+            <input id="content-keyword-input" type="text" placeholder="新增内容敏感词" maxlength="30" />
+            <button type="submit">添加内容词</button>
           </form>
           <div class="table-wrap">
             <table>
@@ -93,7 +92,7 @@
                   <th>操作</th>
                 </tr>
               </thead>
-              <tbody id="custom-short-table"></tbody>
+              <tbody id="content-table"></tbody>
             </table>
           </div>
         </section>

@@ -81,14 +81,6 @@
     return normalizeWhitespace(text || "").replace(/[^\p{Script=Han}\p{Letter}\p{Number}\p{Symbol}\p{Extended_Pictographic}\uFE0F\u200D ]/gu, "");
   }
 
-  function hasChinese(text) {
-    return /[\u4e00-\u9fff]/.test(text);
-  }
-
-  function countChineseAwareLength(text) {
-    return normalizeWhitespace(text).replace(/\s/g, "").length;
-  }
-
   function createDefaultSettings() {
     return {
       shortKeywords: [...DEFAULT_SHORT_KEYWORDS],
@@ -98,29 +90,74 @@
     };
   }
 
+  function mergeKeywordLists(...lists) {
+    return Array.from(
+      new Set(
+        lists
+          .flat()
+          .map((item) => normalizeWhitespace(item))
+          .filter(Boolean)
+      )
+    );
+  }
+
   async function getSettings() {
     const stored = await chrome.storage.local.get(STORAGE_KEY);
+    const storedSettings = stored[STORAGE_KEY] || {};
+
+    if (!stored[STORAGE_KEY]) {
+      const defaults = createDefaultSettings();
+      await chrome.storage.local.set({
+        [STORAGE_KEY]: defaults
+      });
+      return defaults;
+    }
+
     const merged = {
       ...createDefaultSettings(),
-      ...(stored[STORAGE_KEY] || {})
+      ...storedSettings
     };
 
-    merged.shortKeywords = Array.from(new Set(merged.shortKeywords.filter(Boolean)));
-    merged.profileKeywords = Array.from(new Set((merged.profileKeywords || PROFILE_BLOCK_KEYWORDS).filter(Boolean)));
+    merged.shortKeywords = mergeKeywordLists(
+      Array.isArray(storedSettings.shortKeywords) ? storedSettings.shortKeywords : [],
+      Array.isArray(storedSettings.customShortKeywords) ? storedSettings.customShortKeywords : []
+    );
+    merged.profileKeywords = mergeKeywordLists(
+      Array.isArray(storedSettings.profileKeywords) ? storedSettings.profileKeywords : []
+    );
     merged.whitelistHandles = Array.from(
       new Set((merged.whitelistHandles || []).map((item) => normalizeHandleForRule(item)).filter(Boolean))
     );
-    merged.customShortKeywords = Array.from(new Set(merged.customShortKeywords.filter(Boolean)));
+    merged.customShortKeywords = [];
+
+    const shouldPersist =
+      !Array.isArray(storedSettings.shortKeywords) ||
+      !Array.isArray(storedSettings.profileKeywords) ||
+      (Array.isArray(storedSettings.customShortKeywords) && storedSettings.customShortKeywords.length > 0) ||
+      JSON.stringify(storedSettings.shortKeywords || []) !== JSON.stringify(merged.shortKeywords) ||
+      JSON.stringify(storedSettings.profileKeywords || []) !== JSON.stringify(merged.profileKeywords) ||
+      JSON.stringify(storedSettings.whitelistHandles || []) !== JSON.stringify(merged.whitelistHandles);
+
+    if (shouldPersist) {
+      await chrome.storage.local.set({
+        [STORAGE_KEY]: {
+          shortKeywords: merged.shortKeywords,
+          profileKeywords: merged.profileKeywords,
+          whitelistHandles: merged.whitelistHandles,
+          customShortKeywords: []
+        }
+      });
+    }
 
     return merged;
   }
 
   async function saveSettings(settings) {
     const normalized = {
-      shortKeywords: Array.from(new Set((settings.shortKeywords || []).map((item) => normalizeWhitespace(item)).filter(Boolean))),
-      profileKeywords: Array.from(new Set((settings.profileKeywords || []).map((item) => normalizeWhitespace(item)).filter(Boolean))),
+      shortKeywords: mergeKeywordLists(settings.shortKeywords || []),
+      profileKeywords: mergeKeywordLists(settings.profileKeywords || []),
       whitelistHandles: Array.from(new Set((settings.whitelistHandles || []).map((item) => normalizeHandleForRule(item)).filter(Boolean))),
-      customShortKeywords: Array.from(new Set((settings.customShortKeywords || []).map((item) => normalizeWhitespace(item)).filter(Boolean)))
+      customShortKeywords: []
     };
 
     await chrome.storage.local.set({
@@ -140,12 +177,6 @@
     const settings = await getSettings();
     settings.profileKeywords = [...PROFILE_BLOCK_KEYWORDS];
     return saveSettings(settings);
-  }
-
-  function buildCustomKeywordList(settings) {
-    return (settings.customShortKeywords || [])
-      .map((item) => sanitizeForRule(item))
-      .filter(Boolean);
   }
 
   function buildDefaultKeywordList(settings) {
@@ -189,14 +220,14 @@
       };
     }
 
-    const customKeyword = buildCustomKeywordList(settings).find((entry) => normalized.includes(entry));
-    if (customKeyword) {
+    const defaultKeyword = buildDefaultKeywordList(settings).find((entry) => normalized.includes(entry));
+    if (defaultKeyword) {
       return {
         matched: true,
-        reason: "custom-keyword",
-        keyword: customKeyword,
+        reason: "keyword",
+        keyword: defaultKeyword,
         cleanedText: normalized,
-        priority: "manual"
+        priority: "default-keyword"
       };
     }
 
@@ -208,44 +239,7 @@
   }
 
   function matchText(rawText, settings) {
-    const priorityMatch = matchPriorityText(rawText, settings);
-    if (priorityMatch.matched) {
-      return priorityMatch;
-    }
-
-    const normalized = priorityMatch.cleanedText;
-
-    if (!hasChinese(normalized)) {
-      return {
-        matched: false,
-        reason: "not-chinese",
-        cleanedText: normalized
-      };
-    }
-
-    if (countChineseAwareLength(normalized) > 40) {
-      return {
-        matched: false,
-        reason: "too-long",
-        cleanedText: normalized
-      };
-    }
-
-    const keyword = buildDefaultKeywordList(settings).find((entry) => normalized.includes(entry));
-    if (keyword) {
-      return {
-        matched: true,
-        reason: "keyword",
-        keyword,
-        cleanedText: normalized
-      };
-    }
-
-    return {
-      matched: false,
-      reason: "no-keyword",
-      cleanedText: normalized
-    };
+    return matchPriorityText(rawText, settings);
   }
 
   function matchProfile(displayName, handle, hasEmojiNode = false, settings = createDefaultSettings()) {

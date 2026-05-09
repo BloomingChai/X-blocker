@@ -159,29 +159,9 @@ body {
   margin-bottom: 14px;
 }
 
-.panel__header--spread {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
 .panel h2 {
   font-size: 18px;
   letter-spacing: -0.03em;
-}
-
-.panel__ghost {
-  height: 28px;
-  padding: 0 10px;
-  border: 1px solid rgba(15, 20, 25, 0.1);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .stack-form {
@@ -220,7 +200,6 @@ body {
   transition: filter 0.16s ease, opacity 0.16s ease;
 }
 
-.panel__ghost:hover,
 .stack-form button:hover {
   filter: brightness(0.98);
 }
