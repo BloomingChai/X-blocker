@@ -59,6 +59,10 @@
     return text.replace(/\s+/g, " ").trim();
   }
 
+  function normalizeForKeywordMatch(text) {
+    return normalizeWhitespace(text || "").toLocaleLowerCase();
+  }
+
   function normalizeHandleForRule(handle) {
     const normalized = normalizeWhitespace(handle || "").replace(/^@+/, "").toLowerCase();
     if (!normalized) {
@@ -92,14 +96,19 @@
   }
 
   function mergeKeywordLists(...lists) {
-    return Array.from(
-      new Set(
-        lists
-          .flat()
-          .map((item) => normalizeWhitespace(item))
-          .filter(Boolean)
-      )
-    );
+    const seen = new Set();
+    return lists
+      .flat()
+      .map((item) => normalizeWhitespace(item))
+      .filter(Boolean)
+      .filter((item) => {
+        const normalized = normalizeForKeywordMatch(item);
+        if (seen.has(normalized)) {
+          return false;
+        }
+        seen.add(normalized);
+        return true;
+      });
   }
 
   async function getSettings() {
@@ -212,6 +221,7 @@
 
     const cleaned = sanitizeForRule(rawText);
     const normalized = normalizeWhitespace(cleaned);
+    const normalizedForMatch = normalizeForKeywordMatch(cleaned);
 
     if (!normalized) {
       return {
@@ -221,7 +231,9 @@
       };
     }
 
-    const defaultKeyword = buildDefaultKeywordList(settings).find((entry) => normalized.includes(entry));
+    const defaultKeyword = buildDefaultKeywordList(settings).find((entry) =>
+      normalizedForMatch.includes(normalizeForKeywordMatch(entry))
+    );
     if (defaultKeyword) {
       return {
         matched: true,
@@ -245,11 +257,13 @@
 
   function matchProfile(displayName, handle, hasEmojiNode = false, settings = createDefaultSettings()) {
     const normalizedName = normalizeWhitespace(displayName || "");
+    const normalizedNameForMatch = normalizeForKeywordMatch(displayName);
     const normalizedHandle = normalizeWhitespace(handle || "").replace(/^@/, "");
     const profileKeywords = (settings.profileKeywords || PROFILE_BLOCK_KEYWORDS)
       .map((item) => normalizeWhitespace(item))
       .filter(Boolean);
-    const matchedProfileKeyword = profileKeywords.find((keyword) => normalizedName.includes(keyword)) || "";
+    const matchedProfileKeyword =
+      profileKeywords.find((keyword) => normalizedNameForMatch.includes(normalizeForKeywordMatch(keyword))) || "";
 
     if (matchedProfileKeyword) {
       return {
@@ -311,6 +325,7 @@
     resetDefaultShortKeywords,
     resetDefaultProfileKeywords,
     sanitizeForRule,
+    normalizeForKeywordMatch,
     normalizeHandleForRule,
     isWhitelistedHandle,
     matchPriorityText,
